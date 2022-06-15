@@ -2,7 +2,16 @@ from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 
+
+
+LOCATION_TYPE_CHOICES = (
+        ("S", "Store"),
+        ("W", "Warehouse")
+    )
+    
 class Dept(models.Model):
+    class Meta:
+        db_table = 'dept'
 
     ACC_METHOD_CHOICES = (
         (1, "Direct Cost"),
@@ -24,6 +33,8 @@ class Dept(models.Model):
 
 
 class Class(models.Model):
+    class Meta:
+        db_table = 'class'
     DEPT = models.ForeignKey(to=Dept, on_delete=models.SET_NULL, null=True)
     CLASS = models.CharField(max_length=10, primary_key=True)
     CLASS_DESC = models.CharField(max_length=40, null=True)
@@ -32,6 +43,8 @@ class Class(models.Model):
 
 
 class SubClass(models.Model):
+    class Meta:
+        db_table = 'subclass'
     DEPT = models.ForeignKey(to=Dept, on_delete=models.SET_NULL, null=True)
     CLASS = models.ForeignKey(to=Class, on_delete=models.SET_NULL, null=True)
     SUBCLASS = models.CharField(max_length=10, primary_key=True)
@@ -39,8 +52,9 @@ class SubClass(models.Model):
     CREATE_ID = models.CharField(max_length=25, null=True)
     CREATE_DATETIME = models.DateTimeField(auto_now_add=True)
 
-
 class Calendar(models.Model):
+    class Meta:
+        db_table = 'calendar'
     YEAR = models.PositiveIntegerField(null=True)
     YEAR_START = models.DateField(null=True)
     CURR_MONTH = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(12)], null=True)
@@ -59,15 +73,18 @@ class Calendar(models.Model):
 
 
 class Currency(models.Model):
-    CURRENCY = models.CharField(max_length=3, primary_key=True)
+    class Meta:
+        db_table = 'CURRENCY'
+    CURRENCY_CODE = models.CharField(max_length=3, primary_key=True)
     CURRENCY_DESC = models.CharField(max_length=60, null=True)
     EFFECTIVE_DATE = models.DateField()
     EXCHANGE_RATE = models.DecimalField(max_digits=20,decimal_places=4, null=True)
     CREATE_ID = models.CharField(max_length=25, null=True)
     CREATE_DATETIME = models.DateTimeField(auto_now_add=True)
 
-
 class GL_Account(models.Model):
+    class Meta:
+        db_table = 'gl_account'
     PRIMARY_ACCOUNT = models.PositiveIntegerField()
     SET_OF_BOOKS_ID = models.PositiveIntegerField()
     SEGMENT1 = models.CharField(max_length=5, null=True)
@@ -83,6 +100,8 @@ class GL_Account(models.Model):
 
 
 class ITEM_DTL(models.Model):
+    class Meta:
+        db_table = 'ITEM_DTL'
 
     PACK_IND_CHOICES = (
         ("Y", "Y"),
@@ -113,15 +132,12 @@ class ITEM_DTL(models.Model):
     CREATE_ID = models.CharField(max_length=25, null=True)
     CREATE_DATETIME = models.DateTimeField(auto_now_add=True)
     LAST_UPDATE_ID = models.CharField(max_length=25, null=True)
-    UPDATE_DATETIME = models.DateTimeField(auto_now=True)
+    UPDATE_DATETIME = models.DateTimeField(auto_now=True,null=True,blank=True)
 
 
 class Location(models.Model):
-
-    LOCATION_TYPE_CHOICES = (
-        ("S", "Store"),
-        ("W", "Warehouse")
-    )
+    class Meta:
+        db_table = 'LOCATION'
 
     STATUS_CHOICES = (
         ("A", "Active"),
@@ -132,11 +148,11 @@ class Location(models.Model):
     LOCATION_NAME = models.CharField(max_length=50, null=True)
     LOCATION_TYPE = models.CharField(max_length=1, choices=LOCATION_TYPE_CHOICES)
     STATUS = models.CharField(max_length=1, choices=STATUS_CHOICES)
-    CURRENCY = models.ForeignKey(to=Currency, on_delete=models.CASCADE)
+    CURRENCY_CODE = models.CharField(max_length=5, null=True)
     CREATE_ID = models.CharField(max_length=25, null=True)
     CREATE_DATETIME = models.DateTimeField(auto_now_add=True)
     LAST_UPDATE_ID = models.CharField(max_length=25, null=True)
-    UPDATE_DATETIME = models.DateTimeField(auto_now=True)
+    UPDATE_DATETIME = models.DateTimeField(auto_now=True,null=True,blank=True)
 
 
 
@@ -161,17 +177,19 @@ TRN_TYPE_CHOICES = (
 )
 
 class stg_trn_data(models.Model):
+    class Meta:
+        db_table = 'stg_trn_data'
 
     TRAN_SEQ_NO = models.IntegerField(primary_key=True, validators=[MaxValueValidator(99999999)])
-    PROCESS_IND = models.CharField(max_length=1, choices=PROCESS_IND_CHOICES)
+    PROCESS_IND = models.CharField(max_length=1, choices=PROCESS_IND_CHOICES, null=True)
     ITEM = models.CharField(max_length=25, null=True)
     REF_ITEM = models.CharField(max_length=25, null=True)
     REF_ITEM_TYPE = models.CharField(max_length=1, null=True, choices=REF_ITEM_TYPE_CHOICES)
-    LOCATION_TYPE = models.ForeignKey(to=Location, on_delete=models.SET_NULL, null=True,related_name="stg_location_type")
-    LOCATION = models.ForeignKey(to=Location, on_delete=models.SET_NULL, null=True,related_name="stg_location_name")
+    LOCATION_TYPE = models.CharField(max_length=1,choices=LOCATION_TYPE_CHOICES, null=True,blank=True)
+    LOCATION = models.PositiveIntegerField(null=True,blank=True,default=None)
     TRN_DATE = models.DateField(auto_now=True)
     TRN_TYPE = models.CharField(max_length=10, null=True, choices=TRN_TYPE_CHOICES)
-    QTY = models.PositiveIntegerField(null=True)
+    QTY = models.DecimalField(max_digits=20, decimal_places=4, null=True)
     PACK_QTY = models.PositiveIntegerField(null=True, validators=[MaxValueValidator(9999)])
     PACK_COST = models.DecimalField(max_digits=20,decimal_places=4, null=True)
     PACK_RETAIL = models.DecimalField(max_digits=20,decimal_places=4, null=True)
@@ -184,14 +202,16 @@ class stg_trn_data(models.Model):
     REF_NO3 = models.CharField(max_length=10, null=True)
     REF_NO4 = models.CharField(max_length=10, null=True)
     AREF = models.CharField(max_length=1, null=True)
-    CURRENCY = models.CharField(max_length=3)
+    CURRENCY = models.CharField(max_length=3,null=True,blank=True,default=None)
     CREATE_DATETIME = models.DateTimeField(auto_now_add=True)
     CREATE_ID = models.CharField(max_length=25, null=True)
     REV_NO = models.IntegerField(validators=[MaxValueValidator(99)], null=True)
-    REV_TRN_NO = models.IntegerField(validators=[MaxValueValidator(99999999)])
+    REV_TRN_NO = models.IntegerField(validators=[MaxValueValidator(99999999)], null=True)
 
 
 class trn_data(models.Model):
+    class Meta:
+        db_table = 'trn_data'
     TRAN_SEQ_NO = models.ForeignKey(to=stg_trn_data, on_delete=models.CASCADE)
     PROCESS_IND = models.CharField(max_length=1, choices=PROCESS_IND_CHOICES)
     ITEM = models.CharField(max_length=25, null=True)
@@ -225,6 +245,8 @@ class trn_data(models.Model):
 
 
 class trn_data_history(models.Model):
+    class Meta:
+        db_table = 'trn_data_history'
     TRAN_SEQ_NO = models.ForeignKey(to=stg_trn_data, on_delete=models.CASCADE)
     PROCESS_IND = models.CharField(max_length=1, choices=PROCESS_IND_CHOICES)
     ITEM = models.CharField(max_length=25, null=True)
@@ -259,6 +281,8 @@ class trn_data_history(models.Model):
 
 
 class trn_data_rev(models.Model):
+    class Meta:
+        db_table = 'trn_data_rev'
     TRAN_SEQ_NO = models.ForeignKey(to=stg_trn_data, on_delete=models.CASCADE)
     ITEM = models.CharField(max_length=25, null=True)
     DEPT = models.ForeignKey(to=Dept, on_delete=models.SET_NULL, null=True)
@@ -285,6 +309,8 @@ class trn_data_rev(models.Model):
 
 
 class err_trn_data(models.Model):
+    class Meta:
+        db_table = 'err_trn_data'
     TRAN_SEQ_NO = models.ForeignKey(to=stg_trn_data, on_delete=models.CASCADE)
     PROCESS_IND = models.CharField(max_length=1, choices=PROCESS_IND_CHOICES)
     ITEM = models.CharField(max_length=25, null=True)
@@ -315,6 +341,8 @@ class err_trn_data(models.Model):
 
 
 class transaction_data_expl(models.Model):
+    class Meta:
+        db_table = 'transaction_data_expl'
     TRAN_SEQ_NO = models.ForeignKey(to=stg_trn_data, on_delete=models.CASCADE)
     ITEM = models.CharField(max_length=25, null=True)
     DEPT = models.ForeignKey(to=Dept, on_delete=models.SET_NULL, null=True)
@@ -340,6 +368,8 @@ class transaction_data_expl(models.Model):
 
 
 class item_location(models.Model):
+    class Meta:
+        db_table = 'item_location'
     STATUS_CHOICES = (
         ("A", "Active"),
         ("I", "Inactive"),
@@ -370,11 +400,15 @@ class item_location(models.Model):
 
 
 class sl_control(models.Model):
+    class Meta:
+        db_table = 'sl_control'
     CONTROL_IND = models.CharField(max_length=1, null=True)
     PROGRAM_NAME = models.CharField(max_length=255, null=True)
 
 
 class stg_fin_data(models.Model):
+    class Meta:
+        db_table = 'stg_fin_data'
     SET_OF_BOOKS_ID = models.PositiveIntegerField(validators=[MaxValueValidator(9999999999)])    
     ACCOUNTING_DATE = models.DateField(null=True)
     CURRENCY = models.ForeignKey(to=Currency, on_delete=models.SET_NULL, null=True)
@@ -393,6 +427,8 @@ class stg_fin_data(models.Model):
 
 
 class pndg_dly_rollup(models.Model):
+    class Meta:
+        db_table = 'pndg_dly_rollup'
     TRAN_SEQ_NO = models.ForeignKey(to=stg_trn_data, on_delete=models.CASCADE)
     PROCESS_IND = models.CharField(max_length=1, choices=PROCESS_IND_CHOICES)
     ITEM = models.CharField(max_length=25, null=True)
@@ -427,6 +463,8 @@ class pndg_dly_rollup(models.Model):
 
 
 class date_range(models.Model):
+    class Meta:
+        db_table = 'date_range'
 
     YEAR = models.PositiveIntegerField(null=True)
     MONTH_START = models.DateField(null=True)
@@ -439,3 +477,11 @@ class date_range(models.Model):
     WEEK_CLOSE_IND = models.CharField(max_length=1)
     DAY_CLOSE_IND = models.CharField(max_length=1)
     MONTH_CLOSE_IND = models.CharField(max_length=1)
+
+
+class stg_trn_data_del_records(models.Model):
+    class Meta:
+        db_table = 'stg_trn_data_del_records'
+    DATE = models.DateField(auto_now_add=True)
+    PROCESS = models.CharField(max_length=30)
+    RECORDS_CLEANED = models.PositiveIntegerField()

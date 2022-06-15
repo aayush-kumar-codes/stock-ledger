@@ -15,7 +15,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from stock_ledger_models.views import count, home
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('stg_trn_data/', home),
+    path('count/', count)
 ]

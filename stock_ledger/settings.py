@@ -25,12 +25,14 @@ SECRET_KEY = 'django-insecure-^ob+msr@p$%gqapjm=%=tykd%oysa21@*@z-n(l7up6sqiq@ok
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'rest_framework',
+    'corsheaders',
     'stock_ledger_models',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -41,6 +43,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -50,6 +53,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True
 ROOT_URLCONF = 'stock_ledger.urls'
 
 TEMPLATES = [
@@ -76,8 +80,12 @@ WSGI_APPLICATION = 'stock_ledger.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql', 
+        'NAME': 'stock_ledger',
+        'USER':'root',
+        'PASSWORD':'@Password1',
+        'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
+        'PORT': '3306',
     }
 }
 
